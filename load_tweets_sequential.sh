@@ -8,16 +8,18 @@ echo '==========================================================================
 time for file in $files; do
     echo
     unzip -p "$file" | \
-    jq -c 'walk(
+     jq -c 'walk(
       if type=="string" then
-        gsub("\\\\"; "\\\\\\\\") |  # escape backslashes
-        gsub("\r"; "")      |        # remove carriage returns
-        gsub("\n"; "\\n")  |        # escape newlines
-        gsub("\""; "\\\"")           # escape quotes
+        gsub("\\\\"; "\\\\\\\\") |
+        gsub("\b"; "\\\\b") |
+        gsub("\t"; "\\\\t") |
+        gsub("\r"; "") |
+        gsub("\n"; "\\\\n") |
+        gsub("\""; "\\\\\"")
       else
         .
       end
-    )' | \
+    )'| \
     psql postgresql://postgres:pass@localhost:1100 \
       -c "\COPY tweets_jsonb (data) FROM STDIN"
     # copy your solution to the twitter_postgres assignment here
@@ -37,5 +39,5 @@ echo '==========================================================================
 echo 'load pg_normalized_batch'
 echo '================================================================================'
 time for file in $files; do
-    python3 -u load_tweets_batch.py --db=postgresql://postgres:pass@localhost:3/ --inputs $file
+    python3 -u load_tweets_batch.py --db=postgresql://postgres:pass@localhost:1300/ --inputs $file
 done
